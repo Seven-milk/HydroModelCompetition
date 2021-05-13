@@ -64,12 +64,28 @@ def save_attribute():
     attribute1.to_excel('attribute1.xlsx')
     attribute2.to_excel('attribute2.xlsx')
     attribute3.to_excel('attribute3.xlsx')
-    target.to_excel('target.xlsx')
-    attribute.to_excel('attribute.xlsx')
+    target.to_excel('target_train.xlsx')
+    attribute.to_excel('attribute_train.xlsx')
+    target.iloc[1732:, :].to_excel('target_test.xlsx')
+    attribute.iloc[1732:, :].to_excel('attribute_test.xlsx')
 
 
 # attribute/target_train
 attribute_train = attribute.values
 target_train = target.values
-np.save('attribute_train', attribute_train)
-np.save('target_train', target_train)
+
+
+def save_attribute_target_tarin():
+    np.save('attribute_train', attribute_train)
+    np.save('target_train', target_train)
+
+
+# attribute/target_test
+attribute_test = attribute_train[1732:, :]
+target_test = target_train[1732:, :]
+
+
+def save_attribute_target_test():
+    np.save('attribute_test', attribute_test)
+    np.save('target_test', target_test)
+
