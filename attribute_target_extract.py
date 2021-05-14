@@ -43,6 +43,17 @@ for i in range(20, len(train_runoff) - 7 + 1):
     attribute1[i - 20, :, :] = train_pre.iloc[i - 20: i, :].values
     attribute2[i - 20, :, :] = train_runoff.iloc[i - 20: i, :].values
 
+
+# save_before_shape
+def save_before_shape():
+    np.save('attribute1_before_reshape_train', attribute1)
+    np.save('attribute2_before_reshape_train', attribute2)
+    np.save('attribute3_before_reshape_train', attribute3)
+    np.save('attribute1_before_reshape_test', attribute1[1732:, :, :])
+    np.save('attribute2_before_reshape_test', attribute2[1732:, :, :])
+    np.save('attribute3_before_reshape_test', attribute3[1732:, :, :])
+
+
 # post process
 attribute1 = attribute1.reshape((2166, 400))
 attribute2 = attribute2.reshape((2166, 80))
