@@ -8,6 +8,7 @@ import re
 import pandas as pd
 import os
 import matplotlib.pyplot as plt
+from tensorflow.keras.callbacks import TensorBoard
 
 
 # general set
@@ -62,11 +63,11 @@ if os.path.exists(checkpoint_save_path + '.index'):
 cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_save_path,
                                                  save_weights_only=True,
                                                  save_best_only=True)
-
+tensorboard = TensorBoard(log_dir='log', histogram_freq=1, write_grads=True)
 
 # model fit
 history = runoffmodel.fit(attribute_train, target_train, batch_size=32, validation_split=0.2, epochs=500,
-                      validation_freq=1, callbacks=[cp_callback])
+                      validation_freq=1, callbacks=[cp_callback, tensorboard])
 
 # plot
 acc = history.history["accuracy"]
@@ -118,4 +119,4 @@ def predict_plot():
         ax[i].set_xlabel("days")
         ax[i].set_ylim(0, 1)
 
-predict_plot()
+# predict_plot()
