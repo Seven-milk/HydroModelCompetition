@@ -8,9 +8,11 @@ import os
 import matplotlib.pyplot as plt
 
 home = 'F:/文件/水科学数值模拟大赛/prelim/attribute_target'
-attribute_test = np.load(os.path.join(home, 'attribute_test.npy'))
+# attribute_test = np.load(os.path.join(home, 'attribute_test.npy'))
+# target_test = np.load(os.path.join(home, 'target_test.npy'))
+# target_predict = np.load('F:/文件/水科学数值模拟大赛/prelim/model1/target_predict.npy')
 target_test = np.load(os.path.join(home, 'target_test.npy'))
-target_predict = np.load('F:/文件/水科学数值模拟大赛/prelim/model/target_predict.npy')
+target_predict = np.load('F:/文件/水科学数值模拟大赛/prelim/model2/target_predict.npy')
 
 # model evaluation
 NSE = 1 - sum((target_test - target_predict)**2) / sum((target_test - target_test.mean())**2)
