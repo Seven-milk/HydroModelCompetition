@@ -3,7 +3,7 @@
 # email: Z786909151@163.com
 
 # process_data(train and test data)
-# 1) hourly -> daily: sum-pre/ mean-runoff
+# hourly -> daily: sum-pre/ mean-runoff
 # out:
 # train_pre/runoff_D.xlsx
 # test_pre_D0/1/2/3/4.xlsx(5 test time) test_pre_predict0/1/2/3/4.xlsx test_runoff_D0/1/2/3/4.xlsx
