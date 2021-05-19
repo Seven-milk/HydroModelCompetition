@@ -56,7 +56,7 @@ for i in range(4):
     bar_value = [evaluation.iloc[i, j] for j in range(len(x))]
     ax.bar(x_, bar_value, width=bar_width, label=labels_[i])
 
-ax.legend(loc="lower right", prop={'family': 'Arial', 'size': 8}, ncol=4)
+ax.legend(loc="upper right", prop={'family': 'Arial', 'size': 8}, ncol=4)
 ax.set_title("评价指标", fontdict={'family': 'SimHei'})
 ax.set_xticks(ticks_position)
 ax.set_xticklabels(ticks_, fontdict={'family': 'SimHei'})
