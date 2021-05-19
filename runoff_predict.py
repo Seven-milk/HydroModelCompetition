@@ -10,9 +10,9 @@ import os
 import matplotlib.pyplot as plt
 
 # general set
-home = 'F:/文件/水科学数值模拟大赛/prelim/attribute_target'
-attribute_train = np.load(os.path.join(home, 'attribute_train.npy'))
-target_train = np.load(os.path.join(home, 'target_train.npy'))
+home = 'F:/文件/水科学数值模拟大赛/prelim/数据预处理/attribute_target'
+attribute_train = np.load(os.path.join(home, 'attribute_train.npy'))[:1732]
+target_train = np.load(os.path.join(home, 'target_train.npy'))[:1732]
 attribute_test = np.load(os.path.join(home, 'attribute_test.npy'))
 target_test = np.load(os.path.join(home, 'target_test.npy'))
 model_path = 'F:/文件/水科学数值模拟大赛/prelim/model1'
@@ -58,7 +58,7 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_save_path,
 
 
 # model fit
-history = runoffmodel.fit(attribute_train, target_train, batch_size=32, epochs=5, validation_split=0.2,
+history = runoffmodel.fit(attribute_train, target_train, batch_size=32, epochs=1000, validation_split=0.2,
                       validation_freq=1, callbacks=[cp_callback])
 
 # plot
@@ -90,9 +90,16 @@ with open(os.path.join(model_path, 'weights.txt'), 'w') as file:
 
 
 # predict
-predict_on = input('whether predict, False or True')
-target_predict = runoffmodel.predict(attribute_test)
-np.save("target_predict", target_predict)
+target_predict_test = runoffmodel.predict(attribute_test)
+# np.save("target_predict_test", target_predict_test)
+df = pd.DataFrame(target_predict_test)
+df.to_excel("target_predict_test_FCNN.xlsx")
+
+attribute_train = np.load(os.path.join(home, 'attribute_train.npy'))[:1732]
+target_predict_train = runoffmodel.predict(attribute_train)
+# np.save("target_predict_train", target_predict_train)
+df = pd.DataFrame(target_predict_train)
+df.to_excel("target_predict_train_FCNN.xlsx")
 
 
 # predict plot

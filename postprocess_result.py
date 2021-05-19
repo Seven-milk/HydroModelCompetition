@@ -25,7 +25,7 @@ print(evaluation_test)
 
 # save evaluation_test
 evaluation_test_save = input("是否保存evaluation_test.xlsx(True or False):")
-if evaluation_test_save == True:
+if evaluation_test_save == 'True':
     evaluation_test.to_excel('evaluation_test.xlsx')
 
 # model evaluation_train
@@ -40,7 +40,7 @@ print(evaluation_train)
 
 # save evaluation_test
 evaluation_train_save = input("是否保存evaluation_train.xlsx(True or False):")
-if evaluation_train_save == True:
+if evaluation_train_save == 'True':
     evaluation_train.to_excel('evaluation_train.xlsx')
 
 # plot

@@ -12,8 +12,8 @@ from tensorflow.keras.callbacks import TensorBoard
 
 
 # general set
-home = 'F:/文件/水科学数值模拟大赛/prelim/attribute_target'
-target_train = np.load(os.path.join(home, 'target_train.npy'))
+home = 'F:/文件/水科学数值模拟大赛/prelim/数据预处理/attribute_target'
+target_train = np.load(os.path.join(home, 'target_train.npy'))[:1732, :]
 target_test = np.load(os.path.join(home, 'target_test.npy'))
 
 attribute1_train = np.load(os.path.join(home, 'attribute1_before_reshape_train.npy'))
@@ -27,7 +27,7 @@ model_path = 'F:/文件/水科学数值模拟大赛/prelim/model2'
 checkpoint_save_path = os.path.join(model_path, 'checkpoint/mnist.ckpt')
 
 # shuffle train data
-attribute_train = np.concatenate((attribute1_train, attribute2_train), axis=2)
+attribute_train = np.concatenate((attribute1_train, attribute2_train), axis=2)[:1732, :, :]
 np.random.seed(10)
 np.random.shuffle(attribute_train)
 np.random.seed(10)
@@ -66,7 +66,7 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_save_path,
 tensorboard = TensorBoard(log_dir='log', histogram_freq=1, write_grads=True)
 
 # model fit
-history = runoffmodel.fit(attribute_train, target_train, batch_size=32, validation_split=0.2, epochs=500,
+history = runoffmodel.fit(attribute_train, target_train, batch_size=32, validation_split=0.2, epochs=1000,
                       validation_freq=1, callbacks=[cp_callback, tensorboard])
 
 # plot
@@ -99,10 +99,14 @@ with open(os.path.join(model_path, 'weights.txt'), 'w') as file:
 
 # predict
 attribute_test = np.concatenate((attribute1_test, attribute2_test), axis=2)
-# predict_on = input('whether predict, False or True')
-target_predict = runoffmodel.predict(attribute_test)
-np.save("target_predict", target_predict)
+target_predict_test = runoffmodel.predict(attribute_test)
+df = pd.DataFrame(target_predict_test)
+df.to_excel("target_predict_test_RNN.xlsx")
 
+attribute_train = np.concatenate((attribute1_train, attribute2_train), axis=2)[:1732, :, :]
+target_predict_train = runoffmodel.predict(attribute_train)
+df = pd.DataFrame(target_predict_train)
+df.to_excel("target_predict_train_RNN.xlsx")
 
 # predict plot
 def predict_plot():
@@ -119,4 +123,4 @@ def predict_plot():
         ax[i].set_xlabel("days")
         ax[i].set_ylim(0, 1)
 
-# predict_plot()
+predict_plot()
