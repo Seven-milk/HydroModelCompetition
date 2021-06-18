@@ -87,14 +87,15 @@ def preprocess_test():
         names['test_Nan_index' + str(i)] = names['test_runoff' + str(i)][names['test_runoff' + str(i)].isnull().values == True].index
         names['test_Nan_date' + str(i)] = pd.to_datetime(list(set(names['test_Nan_index' + str(i)].date)))
 
-        # preprocess train data
+        # preprocess test data
         names['test_pre_3H' + str(i)] = names['test_pre' + str(i)].resample("3H").sum()  # sum-pre
         names['test_runoff_3H' + str(i)] = names['test_runoff' + str(i)].resample("3H").mean()  # mean-runoff
+        names['test_pre_predict_3H' + str(i)] = names['test_pre_predict' + str(i)].resample("3H").sum()  # sum-pre-predict
 
         # save
         names['test_pre_3H' + str(i)].to_excel(os.path.join(obj_path, 'test', f'test_pre_3H{i}.xlsx'))
         names['test_runoff_3H' + str(i)].to_excel(os.path.join(obj_path, 'test', f'test_runoff_3H{i}.xlsx'))
-        names['test_pre_predict' + str(i)].to_excel(os.path.join(obj_path, 'test', f'test_pre_predict{i}.xlsx'))
+        names['test_pre_predict_3H' + str(i)].to_excel(os.path.join(obj_path, 'test', f'test_pre_predict_3H{i}.xlsx'))
 
         np.save(os.path.join(obj_path, 'test', f'test_Nan_index{i}'), names['test_Nan_index' + str(i)])
         np.save(os.path.join(obj_path, 'test', f'test_Nan_date{i}'), names['test_Nan_date' + str(i)])
@@ -132,6 +133,6 @@ def Nan_test():
 
 
 if __name__ == '__main__':
-    preprocess_train()
-    preprocess_test()
+    # preprocess_train()
+    # preprocess_test()
     Nan_test()
