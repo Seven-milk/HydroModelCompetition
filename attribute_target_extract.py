@@ -8,95 +8,109 @@ import pandas as pd
 import os
 
 # general set
-home = "F:/文件/水科学数值模拟大赛/prelim/preprocess_data"
+home = 'H:/文件/水科学数值模拟/复赛/数据预处理/preprocess_data'
+obj_path = 'H:/文件/水科学数值模拟/复赛/数据预处理/attribute_target'
 # name = locals()
 
-# read data
-train_pre = pd.read_excel(os.path.join(home, 'train', 'train_pre_D.xlsx'), index_col=0)
-train_runoff = pd.read_excel(os.path.join(home, 'train', 'train_runoff_D.xlsx'), index_col=0)
+# ---------------------------- train data ----------------------------
+# read train data
+train_pre = pd.read_excel(os.path.join(home, 'train', 'train_pre_3H.xlsx'), index_col=0)
+train_runoff = pd.read_excel(os.path.join(home, 'train', 'train_runoff_3H.xlsx'), index_col=0)
 
-# train data sample: 2166
-'''0-2191：共2192——>有效样本：2166
-target: train_runoff：【20~20+7: 2085~2085+7】=2166 损失信息：0~19=20
-attribute3: train_pre：同train_runoff：【20~20+7: 2085~2085+7】=2166  损失信息：0~19=20
-
-attribute1: train_pre: 【0: 0+20~2165+20】=2166 损失信息 2185~2191=7
-attribute2: train_runoff:【0: 0+20~2165+20】=2166 损失信息  2185~2191=7
+# train data sample: 17361 ~ (8:2) = 13888 : 3473
+'''0-17535：共17536——>有效样本：17361
+target: train_runoff：【160(160 before): 17520(15 predict, 16-1)】=17361 损失信息：0~159+17521~17535=20*8=160+15=175
+    每个样本16 (2D * 8 = 16H) * 1 section
+attribute3: train_pre：同train_runoff：【160(160 before): 17520(15 predict, 16-1)】=17361  损失信息：175
+    每个样本16 (2D * 8 = 16H) * 20 station = 320
+attribute1: train_pre: 【0: 17520-160=17360】= 17360 损失信息 17520~17535=16
+    每个样本160 (20D * 8 = 160) * 20 station = 3200
+attribute2: train_runoff:【0: 17520-160=17360】= 17360 损失信息  17520~17535=16
+    每个样本160 (20D * 8 = 160) * 4 station = 640
 '''
-# n(len(train_runoff) - 20(before) - 7(len(7)) == 2166, samples) * m(7, targets),
+# n(len(train_runoff) - 160(before) - 16(predict) + 1(first) == 17361, samples) * m(16, targets),
 # target
-target = np.zeros((len(train_runoff) - 20 - 6, 7))
-# n(len(train_runoff) - 20(before) - 6(len(7) - 1) == 2166, samples) * m(20, before-days) * k(20, stations),
-# precipitation-before
-attribute1 = np.zeros((len(train_runoff) - 20 - 6, 20, 20))
-# n(len(train_runoff) - 20(before) - 7(len(7) - 1) == 2166, samples) * m(20, before-days) * k(4, stations),
-# runoff-before
-attribute2 = np.zeros((len(train_runoff) - 20 - 6, 20, 4))
-# n(len(train_runoff) - 20(before) - 7(len(7) - 1) == 2166, samples) * m(7, predict-days) * k(20, stations),
+target = np.zeros((len(train_runoff) - 160 - 15, 16))
+# n(len(train_runoff) - 160(before) - 16(predict) + 1(first) == 17361, samples) * m(16, predict-days) * k(20, stations),
 # precipitation-predict
-attribute3 = np.zeros((len(train_runoff) - 20 - 6, 7, 20))
+attribute3 = np.zeros((len(train_runoff) - 160 - 15, 16, 20))
+# n(len(train_runoff) - 160(len) - 16(predict) + 1(first) == 17361, samples) * m(160, before-days) * k(20, stations),
+# precipitation-before
+attribute1 = np.zeros((len(train_runoff) - 160 - 15, 160, 20))
+# n(len(train_runoff) - 160(len) - 16(predict) + 1(first) == 17361, samples) * m(160, before-days) * k(4, stations),
+# runoff-before
+attribute2 = np.zeros((len(train_runoff) - 160 - 15, 160, 4))
 
-# extract and reshape
-for i in range(20, len(train_runoff) - 7 + 1):
-    target[i - 20, :] = train_runoff.iloc[i:i + 7, 3].values
-    attribute3[i - 20, :, :] = train_pre.iloc[i:i + 7, :].values
-    attribute1[i - 20, :, :] = train_pre.iloc[i - 20: i, :].values
-    attribute2[i - 20, :, :] = train_runoff.iloc[i - 20: i, :].values
+# sample = 17361
 
-
-# save_before_shape
-def save_before_shape():
-    np.save('attribute1_before_reshape_train', attribute1)
-    np.save('attribute2_before_reshape_train', attribute2)
-    np.save('attribute3_before_reshape_train', attribute3)
-    np.save('attribute1_before_reshape_test', attribute1[1732:, :, :])
-    np.save('attribute2_before_reshape_test', attribute2[1732:, :, :])
-    np.save('attribute3_before_reshape_test', attribute3[1732:, :, :])
+# extract and put into attribute and target
+for i in range(160, len(train_runoff) - 16 + 1):
+    target[i - 160, :] = train_runoff.iloc[i:i + 16, 3].values
+    attribute3[i - 160, :, :] = train_pre.iloc[i:i + 16, :].values
+    attribute1[i - 160, :, :] = train_pre.iloc[i - 160: i, :].values
+    attribute2[i - 160, :, :] = train_runoff.iloc[i - 160: i, :].values
 
 
-# post process
-attribute1 = attribute1.reshape((2166, 400))
-attribute2 = attribute2.reshape((2166, 80))
-attribute3 = attribute3.reshape((2166, 140))
+# save_before_reshape: all npy
+def save_before_reshape():
+    np.save(os.path.join(obj_path, 'train', 'attribute1_before_reshape_train'), attribute1[:13889, :, :])
+    np.save(os.path.join(obj_path, 'train', 'attribute2_before_reshape_train'), attribute2[:13889, :, :])
+    np.save(os.path.join(obj_path, 'train', 'attribute3_before_reshape_train'), attribute3[:13889, :, :])
+    np.save(os.path.join(obj_path, 'train', 'attribute1_before_reshape_test'), attribute1[13889:, :, :])
+    np.save(os.path.join(obj_path, 'train', 'attribute2_before_reshape_test'), attribute2[13889:, :, :])
+    np.save(os.path.join(obj_path, 'train', 'attribute3_before_reshape_test'), attribute3[13889:, :, :])
+
+    np.save(os.path.join(obj_path, 'train', 'target_train'), target[:13889, :])
+    np.save(os.path.join(obj_path, 'train', 'target_test'), target[13889:, :])
+
+
+save_before_reshape()
+
+# reshape and save as csv: all csv
+attribute1 = attribute1.reshape((17361, 3200))
+attribute2 = attribute2.reshape((17361, 640))
+attribute3 = attribute3.reshape((17361, 320))
 attribute1 = pd.DataFrame(attribute1,
-                          columns=[f"pre_beforeday{20 - i}_station{j + 1}" for i in range(20) for j in range(20)])
+                          columns=[f"pre_beforeHour{160 - i}_station{j + 1}" for i in range(160) for j in range(20)])
 attribute2 = pd.DataFrame(attribute2,
-                          columns=[f"runoff_beforeday{20 - i}_station{j + 1}" for i in range(20) for j in range(4)])
+                          columns=[f"runoff_beforeHour{160 - i}_station{j + 1}" for i in range(160) for j in range(4)])
 attribute3 = pd.DataFrame(attribute3,
-                          columns=[f"pre_predictday{i + 1}_station{j + 1}" for i in range(7) for j in range(20)])
-target = pd.DataFrame(target, columns=[f"runoff_predictday{i + 1}" for i in range(7)])
+                          columns=[f"pre_predictHour{i + 1}_station{j + 1}" for i in range(16) for j in range(20)])
+target = pd.DataFrame(target, columns=[f"runoff_predictHour{i + 1}" for i in range(16)])
 
+# combine all attribute
 attribute = attribute1.join(attribute2)
 attribute = attribute.join(attribute3)
 
 
-# save
-def save_attribute():
-    attribute1.to_excel('attribute1.xlsx')
-    attribute2.to_excel('attribute2.xlsx')
-    attribute3.to_excel('attribute3.xlsx')
-    target.to_excel('target_train.xlsx')
-    attribute.to_excel('attribute_train.xlsx')
-    target.iloc[1732:, :].to_excel('target_test.xlsx')
-    attribute.iloc[1732:, :].to_excel('attribute_test.xlsx')
+# save after reshape: all csv
+def save_after_reshape():
+    # train:[:13889]
+    attribute1.iloc[:13889, :].to_csv(os.path.join(obj_path, 'train', 'attribute1_after_reshape_train.csv'))
+    attribute2.iloc[:13889, :].to_csv(os.path.join(obj_path, 'train', 'attribute2_after_reshape_train.csv'))
+    attribute3.iloc[:13889, :].to_csv(os.path.join(obj_path, 'train', 'attribute3_after_reshape_train.csv'))
+    target.iloc[:13889, :].to_csv(os.path.join(obj_path, 'train', 'target_train.csv'))
+    attribute.iloc[:13889, :].to_csv(os.path.join(obj_path, 'train', 'attribute_combine_after_reshape_train.csv'))
+
+    # test:[13889:]
+    attribute1.iloc[13889:, :].to_csv(os.path.join(obj_path, 'train', 'attribute1_after_reshape_test.csv'))
+    attribute2.iloc[13889:, :].to_csv(os.path.join(obj_path, 'train', 'attribute2_after_reshape_test.csv'))
+    attribute3.iloc[13889:, :].to_csv(os.path.join(obj_path, 'train', 'attribute3_after_reshape_test.csv'))
+    target.iloc[13889:, :].to_csv(os.path.join(obj_path, 'train', 'target_test.csv'))
+    attribute.iloc[13889:, :].to_csv(os.path.join(obj_path, 'train', 'attribute_combine_after_reshape_test.csv'))
 
 
-# attribute/target_train
-attribute_train = attribute.values
-target_train = target.values
+save_after_reshape()
+
+# attribute combine save as npy
+attribute_ = attribute.values
 
 
-def save_attribute_target_tarin():
-    np.save('attribute_train', attribute_train)
-    np.save('target_train', target_train)
+def save_attribute_npy():
+    np.save(os.path.join(obj_path, 'train', 'attribute_combine_after_reshape_train'), attribute_[:13889, :])
+    np.save(os.path.join(obj_path, 'train', 'attribute_combine_after_reshape_test'), attribute_[13889:, :])
 
 
-# attribute/target_test
-attribute_test = attribute_train[1732:, :]
-target_test = target_train[1732:, :]
-
-
-def save_attribute_target_test():
-    np.save('attribute_test', attribute_test)
-    np.save('target_test', target_test)
-
+save_attribute_npy()
+# ---------------------------- train data ----------------------------
+# do not need to do further extract, just use it
