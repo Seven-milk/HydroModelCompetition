@@ -112,5 +112,5 @@ def save_attribute_npy():
 
 
 save_attribute_npy()
-# ---------------------------- train data ----------------------------
+# ---------------------------- val data ----------------------------
 # do not need to do further extract, just use it
