@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader
 import time
 import math
 import matplotlib.pyplot as plt
+import pandas as pd
 
 
 # pretreatment dataset
@@ -132,6 +133,8 @@ def test(epoch, test_loader, model):
             real = np.vstack((real, target.numpy()))
             predict = np.vstack((predict, predict_.numpy()))
 
+    real = real[1:]
+    predict = predict[1:]
     nse = NSE(predict, real)
     print(f"epoch{epoch} NSE= {nse}\n")
     return nse
@@ -247,5 +250,60 @@ def train_cycle_model(epochs=100):
     torch.save(model, 'H:/文件/水科学数值模拟/复赛/GRU/model01.pth')
 
 
+# model overview
+def overview_model():
+    checkpoint = torch.load('H:/文件/水科学数值模拟/复赛/GRU/checkpoint/ckpt_best_model01.pkl')
+    epoch_list = checkpoint["epoch_list"]
+    loss_list = checkpoint["loss_list"]
+    nse_list = checkpoint["nse_list"]
+    epoch = checkpoint["epoch"]
+    net = checkpoint["net"]
+
+    # print
+    print(f"parameters are {net}")
+    print(f"Now the train epoch is {epoch}")
+
+    # plot
+    plot_train_test(epoch_list, loss_list, nse_list)
+
+
+# predict
+def predict(runoff, pre):
+    '''
+    input:
+        runoff: samples * 160 times * 4 stations
+        pre: samples * 176 times * 20 stations
+    '''
+    model = torch.load('H:/文件/水科学数值模拟/复赛/GRU/model01.pth')
+    runoff = torch.from_numpy(runoff)
+    pre = torch.from_numpy(pre)
+    predict_out = model(runoff, pre)
+    return predict_out
+
+
+# predict_test
+def predict_test(save_on=True):
+    model = torch.load('H:/文件/水科学数值模拟/复赛/GRU/model01.pth')
+    test_dataset = TestDataset()
+    test_loader = DataLoader(dataset=test_dataset, shuffle=False, num_workers=1)
+    predict = np.zeros((1, 16))
+    with torch.no_grad():
+        for data in test_loader:
+            runoff, pre, target_ = data
+            predict_ = model(runoff, pre)
+            predict = np.vstack((predict, predict_.numpy()))
+
+    predict = predict[1:]
+    predict = predict.T
+
+    if save_on == True:
+        df = pd.DataFrame(predict)
+        df.to_excel("predict_test.xlsx")
+
+    return predict
+
+
 if __name__ == '__main__':
-    train_cycle_model(epochs=5)
+    # train_cycle_model(epochs=5)
+    overview_model()
+    predict_test()
