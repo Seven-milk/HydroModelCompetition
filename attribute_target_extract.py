@@ -10,7 +10,8 @@ import os
 # general set
 home = 'H:/文件/水科学数值模拟/复赛/数据预处理/preprocess_data'
 obj_path = 'H:/文件/水科学数值模拟/复赛/数据预处理/attribute_target'
-# name = locals()
+name = locals()
+
 
 # ---------------------------- train data ----------------------------
 # read train data
@@ -113,4 +114,15 @@ def save_attribute_npy():
 
 save_attribute_npy()
 # ---------------------------- val data ----------------------------
-# do not need to do further extract, just use it
+# 5 val dataset
+for i in range(5):
+    val_pre_3H = pd.read_excel(os.path.join(home, 'val', f'val_pre_3H{i}.xlsx'), index_col=0)
+    val_pre_predict_3H = pd.read_excel(os.path.join(home, 'val', f'val_pre_predict_3H{i}.xlsx'), index_col=0)
+    val_runoff_3H = pd.read_excel(os.path.join(home, 'val', f'val_runoff_3H{i}.xlsx'), index_col=0)
+    attribute1 = val_pre_3H.values
+    attribute2 = val_runoff_3H.values
+    attribute3 = val_pre_predict_3H.values
+
+    np.save(os.path.join(obj_path, 'val', f'attribute1_val{i}'), attribute1)
+    np.save(os.path.join(obj_path, 'val', f'attribute2_val{i}'), attribute2)
+    np.save(os.path.join(obj_path, 'val', f'attribute3_val{i}'), attribute3)
