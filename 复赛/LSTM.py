@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader
 import time
 import math
 import matplotlib.pyplot as plt
+import pandas as pd
 
 
 # pretreatment dataset
@@ -62,6 +63,35 @@ class TestDataset(Dataset):
         return self.len
 
 
+class ValDataset(Dataset):
+    ''' TestDataset '''
+    def __init__(self, i):
+        ''' i: val dataset number: 0, 1, 2, 3, 4 '''
+        # general set
+        home = 'H:/文件/水科学数值模拟/复赛/数据预处理/attribute_target/val'
+
+        # read dataset
+        self.attribute1 = np.load(os.path.join(home, f'attribute1_val{i}.npy')).astype(np.float32)
+        self.attribute2 = np.load(os.path.join(home, f'attribute2_val{i}.npy')).astype(np.float32)
+        self.attribute3 = np.load(os.path.join(home, f'attribute3_val{i}.npy')).astype(np.float32)
+
+        self.attribute1 = self.attribute1.reshape((1, *self.attribute1.shape))
+        self.attribute2 = self.attribute2.reshape((1, *self.attribute2.shape))
+        self.attribute3 = self.attribute3.reshape((1, *self.attribute3.shape))
+
+        self.runoff = self.attribute2
+        self.pre = np.concatenate((self.attribute1, self.attribute3), axis=1)
+
+        # len
+        self.len = 1
+
+    def __getitem__(self, item):
+        return self.runoff[item, :, :], self.pre[item, :, :]
+
+    def __len__(self):
+        return self.len
+
+
 # build model
 class Model02(torch.nn.Module):
 
@@ -85,7 +115,7 @@ class Model02(torch.nn.Module):
 
 
 # train
-def train(epoch):
+def train(epoch, train_loader, optimizer, model, criterion, print_batch_num, since):
     epoch_loss = 0.0
     running_loss = 0.0
     for batch_idx, data in enumerate(train_loader, 0):
@@ -122,7 +152,7 @@ def NSE(predict, real):
 
 
 # test
-def test(epoch):
+def test(epoch, test_loader, model):
     predict = np.zeros((1, 16))
     real = np.zeros((1, 16))
     with torch.no_grad():
@@ -132,6 +162,8 @@ def test(epoch):
             real = np.vstack((real, target.numpy()))
             predict = np.vstack((predict, predict_.numpy()))
 
+    real = real[1:]
+    predict = predict[1:]
     nse = NSE(predict, real)
     print(f"epoch{epoch} NSE= {nse}\n")
     return nse
@@ -165,9 +197,9 @@ def time_since(since):
     return "%dm %ds" % (m, s)
 
 
-if __name__ == '__main__':
+# train model
+def train_cycle_model(epochs=100):
     # this running set
-    epochs = 1000
     batch_size = 32
     print_batch_num = 5
 
@@ -214,9 +246,9 @@ if __name__ == '__main__':
     # train and test for each epoch
     for epoch in list(range(start_epoch + 1, start_epoch + 2 + epochs)):
         epoch_list.append(epoch)
-        epoch_loss = train(epoch)  # train
+        epoch_loss = train(epoch, train_loader, optimizer, model, criterion, print_batch_num, since)  # train
         loss_list.append(epoch_loss)
-        nse = test(epoch)  # test
+        nse = test(epoch, test_loader, model)  # test
         nse_list.append(nse)
 
         # check point: each 50 epoches or loss decrease > 5%
@@ -245,3 +277,110 @@ if __name__ == '__main__':
     }
     torch.save(checkpoint, "H:/文件/水科学数值模拟/复赛/LSTM/checkpoint/ckpt_best_model01.pkl")
     torch.save(model, 'H:/文件/水科学数值模拟/复赛/LSTM/model01.pth')
+
+
+# model overview
+def overview_model():
+    checkpoint = torch.load('H:/文件/水科学数值模拟/复赛/LSTM/checkpoint/ckpt_best_model01.pkl')
+    epoch_list = checkpoint["epoch_list"]
+    loss_list = checkpoint["loss_list"]
+    nse_list = checkpoint["nse_list"]
+    epoch = checkpoint["epoch"]
+    net = checkpoint["net"]
+
+    # print
+    print(f"parameters are {net}")
+    print(f"Now the train epoch is {epoch}")
+
+    # plot
+    plot_train_test(epoch_list, loss_list, nse_list)
+
+
+# predict
+def predict(runoff, pre):
+    '''
+    input:
+        runoff: samples * 160 times * 4 stations
+        pre: samples * 176 times * 20 stations
+    '''
+    model = torch.load('H:/文件/水科学数值模拟/复赛/LSTM/model01.pth')
+    runoff = torch.from_numpy(runoff)
+    pre = torch.from_numpy(pre)
+    predict_out = model(runoff, pre)
+    return predict_out
+
+
+# predict_test
+def predict_test(save_on=True):
+    model = torch.load('H:/文件/水科学数值模拟/复赛/LSTM/model01.pth')
+    test_dataset = TestDataset()
+    test_loader = DataLoader(dataset=test_dataset, shuffle=False, num_workers=1)
+    predict = np.zeros((1, 16))
+    with torch.no_grad():
+        for data in test_loader:
+            runoff, pre, target_ = data
+            predict_ = model(runoff, pre)
+            predict = np.vstack((predict, predict_.numpy()))
+
+    predict = predict[1:]
+    predict = predict.T
+
+    if save_on == True:
+        df = pd.DataFrame(predict)
+        df.to_csv("predict_test.csv", index=False, header=False)
+
+    return predict
+
+
+# predict_train
+def predict_train(save_on=True):
+    model = torch.load('H:/文件/水科学数值模拟/复赛/LSTM/model01.pth')
+    train_dataset = TrainDataset()
+    train_loader = DataLoader(dataset=train_dataset, shuffle=False, num_workers=1)
+    predict = np.zeros((1, 16))
+    with torch.no_grad():
+        for data in train_loader:
+            runoff, pre, target_ = data
+            predict_ = model(runoff, pre)
+            predict = np.vstack((predict, predict_.numpy()))
+
+    predict = predict[1:]
+    predict = predict.T
+
+    if save_on == True:
+        df = pd.DataFrame(predict)
+        df.to_csv("predict_train.csv", index=False, header=False)
+
+    return predict
+
+
+# predict_val
+def predict_val(save_on=True):
+    model = torch.load('H:/文件/水科学数值模拟/复赛/LSTM/model01.pth')
+    predict_all = np.zeros((16, 5))
+    for i in range(5):
+        val_dataset = ValDataset(i)
+        val_loader = DataLoader(dataset=val_dataset, shuffle=False, num_workers=1)
+        predict = np.zeros((1, 16))
+        with torch.no_grad():
+            for data in val_loader:
+                runoff, pre = data
+                predict_ = model(runoff, pre)
+                predict = np.vstack((predict, predict_.numpy()))
+
+        predict = predict[1:]
+        predict = predict.T
+        predict = predict.reshape((-1, ))
+        predict_all[:, i] = predict
+
+    if save_on == True:
+        df = pd.DataFrame(predict_all)
+        df.to_csv(f"predict_val.csv", index=False, header=False)
+
+
+if __name__ == '__main__':
+    train_cycle_model(epochs=5)
+    overview_model()
+    predict_test()
+    predict_train()
+    predict_val()
