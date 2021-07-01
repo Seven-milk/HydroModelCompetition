@@ -63,6 +63,34 @@ class TestDataset(Dataset):
         return self.len
 
 
+class ValDataset(Dataset):
+    ''' TestDataset '''
+    def __init__(self, i):
+        ''' i: val dataset number: 0, 1, 2, 3, 4 '''
+        # general set
+        home = 'H:/文件/水科学数值模拟/复赛/数据预处理/attribute_target/val'
+
+        # read dataset
+        self.attribute1 = np.load(os.path.join(home, f'attribute1_val{i}.npy')).astype(np.float32)
+        self.attribute2 = np.load(os.path.join(home, f'attribute2_val{i}.npy')).astype(np.float32)
+        self.attribute3 = np.load(os.path.join(home, f'attribute3_val{i}.npy')).astype(np.float32)
+
+        self.attribute1 = self.attribute1.reshape((1, *self.attribute1.shape))
+        self.attribute2 = self.attribute2.reshape((1, *self.attribute2.shape))
+        self.attribute3 = self.attribute3.reshape((1, *self.attribute3.shape))
+
+        self.runoff = self.attribute2
+        self.pre = np.concatenate((self.attribute1, self.attribute3), axis=1)
+
+        # len
+        self.len = 1
+
+    def __getitem__(self, item):
+        return self.runoff[item, :, :], self.pre[item, :, :]
+
+    def __len__(self):
+        return self.len
+
 # build model
 class Model03(torch.nn.Module):
 
@@ -298,12 +326,60 @@ def predict_test(save_on=True):
 
     if save_on == True:
         df = pd.DataFrame(predict)
-        df.to_excel("predict_test.xlsx")
+        df.to_csv("predict_test.csv", index=False, header=False)
 
     return predict
+
+
+# predict_train
+def predict_train(save_on=True):
+    model = torch.load('H:/文件/水科学数值模拟/复赛/GRU/model01.pth')
+    train_dataset = TrainDataset()
+    train_loader = DataLoader(dataset=train_dataset, shuffle=False, num_workers=1)
+    predict = np.zeros((1, 16))
+    with torch.no_grad():
+        for data in train_loader:
+            runoff, pre, target_ = data
+            predict_ = model(runoff, pre)
+            predict = np.vstack((predict, predict_.numpy()))
+
+    predict = predict[1:]
+    predict = predict.T
+
+    if save_on == True:
+        df = pd.DataFrame(predict)
+        df.to_csv("predict_train.csv", index=False, header=False)
+
+    return predict
+
+
+# predict_val
+def predict_val(save_on=True):
+    model = torch.load('H:/文件/水科学数值模拟/复赛/GRU/model01.pth')
+    predict_all = np.zeros((16, 5))
+    for i in range(5):
+        val_dataset = ValDataset(i)
+        val_loader = DataLoader(dataset=val_dataset, shuffle=False, num_workers=1)
+        predict = np.zeros((1, 16))
+        with torch.no_grad():
+            for data in val_loader:
+                runoff, pre = data
+                predict_ = model(runoff, pre)
+                predict = np.vstack((predict, predict_.numpy()))
+
+        predict = predict[1:]
+        predict = predict.T
+        predict = predict.reshape((-1, ))
+        predict_all[:, i] = predict
+
+    if save_on == True:
+        df = pd.DataFrame(predict_all)
+        df.to_csv(f"predict_val.csv", index=False, header=False)
 
 
 if __name__ == '__main__':
     # train_cycle_model(epochs=5)
     overview_model()
     predict_test()
+    predict_train()
+    predict_val()
