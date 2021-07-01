@@ -3,10 +3,10 @@
 # email: Z786909151@163.com
 
 # process_data(train and val data)
-# hourly -> daily: sum-pre/ mean-runoff
+# hourly -> 3hourly: sum-pre/ mean-runoff
 # out:
-# train_pre/runoff_D.xlsx
-# val_pre_D0/1/2/3/4.xlsx(5 val time) val_pre_predict0/1/2/3/4.xlsx val_runoff_D0/1/2/3/4.xlsx
+# train_pre/runoff_3H.xlsx
+# val_pre_3H0/1/2/3/4.xlsx(5 val time) val_pre_predict3H0/1/2/3/4.xlsx val_runoff_D0/1/2/3/4.xlsx
 import pandas as pd
 import numpy as np
 import os
