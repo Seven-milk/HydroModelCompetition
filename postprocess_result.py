@@ -34,7 +34,7 @@ def general_evaluation():
         print(evaluation)
 
         # save evaluation_test
-        save_on = input("是否保存 evaluation.xlsx? True or other:")
+        save_on = input(f"是否保存 {save_path}? True or other:")
         if save_on == 'True':
             evaluation.to_excel(save_path)
 
@@ -228,11 +228,13 @@ def extreme_evaluation():
         evaluation_extreme_all.loc[:, 'Predict Hour' + str(i + 1)] = evaluation_all
 
         # plot
-        target_real = [target_real_train_, target_real_test_, target_real_all_]
-        target_predict = [target_predict_train_, target_predict_test_, target_predict_all_]
-        index_low = [train_index_low, test_index_low, all_index_low]
-        index_high = [train_index_high, test_index_high, all_index_high]
-        plot_evaluation_low_high(target_real, target_predict, index_low, index_high)
+        plot_on = input("是否进行plot? True or other")
+        if plot_on == 'True':
+            target_real = [target_real_train_, target_real_test_, target_real_all_]
+            target_predict = [target_predict_train_, target_predict_test_, target_predict_all_]
+            index_low = [train_index_low, test_index_low, all_index_low]
+            index_high = [train_index_high, test_index_high, all_index_high]
+            plot_evaluation_low_high(target_real, target_predict, index_low, index_high)
 
     print("evaluation_extreme_train\n", evaluation_extreme_train)
     print("evaluation_extreme_test\n", evaluation_extreme_test)
