@@ -1,13 +1,14 @@
 # code: utf-8
 # author: "Xudong Zheng" 
 # email: Z786909151@163.com
-# 使用方法：将实测结果放入target_test.xlsx，将预测结果放入target_predict_test.xlsx，运行即可
+# 使用方法：将实测结果放入*real_test/train.xlsx，将预测结果放入*predict_test/train.xlsx，运行即可
 
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
 import Nonparamfit
+import re
 
 target_real_train_path = [dir for dir in os.listdir() if dir.endswith('real_train.csv')][0]
 target_real_test_path = [dir for dir in os.listdir() if dir.endswith('real_test.csv')][0]
@@ -21,9 +22,10 @@ target_predict_test = pd.read_csv(target_predict_test_path, index_col=False, hea
 
 
 # --------------------------- general evaluation ---------------------------
-def general_evaluation():
+def general_evaluation(target_real_test, target_real_train, target_predict_test, target_predict_train, save_on=False,
+                       batch=False, plot_on=True):
     # model evaluation
-    def evaluation(target_test, target_predict_test, save_path="evaluation.xlsx"):
+    def evaluation(target_test, target_predict_test, save_path="evaluation.xlsx", save_on=False, batch=False):
         NSE = 1 - sum((target_test - target_predict_test) ** 2) / sum((target_test - target_test.mean()) ** 2)
         PBIAS = sum(target_test - target_predict_test) * 100 / sum(target_test)
         RMSE = sum((target_test - target_predict_test) ** 2) ** 0.5
@@ -34,17 +36,21 @@ def general_evaluation():
         print(evaluation)
 
         # save evaluation_test
-        save_on = input(f"是否保存 {save_path}? True or other:")
+        if batch == False:
+            save_on = input(f"是否保存 {save_path}? True or other:")
+
         if save_on == 'True':
             evaluation.to_excel(save_path)
 
         return evaluation
 
     # model evaluation_train
-    evaluation_train = evaluation(target_real_train, target_predict_train, save_path="evaluation_train.xlsx")
+    evaluation_train = evaluation(target_real_train, target_predict_train, save_path="evaluation_train.xlsx",
+                                  save_on=save_on, batch=batch)
 
     # evaluation test
-    evaluation_test = evaluation(target_real_test, target_predict_test, save_path="evaluation_test.xlsx")
+    evaluation_test = evaluation(target_real_test, target_predict_test, save_path="evaluation_test.xlsx",
+                                 save_on=save_on, batch=batch)
 
     # plot
     def plot_evaluation():
@@ -94,16 +100,21 @@ def general_evaluation():
         plt.show()
 
     # plot_evaluation
-    plot_evaluation()
+    if batch == True:
+        plot_on = False
+    if plot_on == True:
+        plot_evaluation()
 
 
 general_evaluation_on = input("是否进行general evaluation? True or Other:")
 if general_evaluation_on == "True":
-    general_evaluation()
+    general_evaluation(target_real_test, target_real_train, target_predict_test, target_predict_train, save_on=False,
+                       batch=False, plot_on=True)
 
 
-# --------------------------- extrame value evaluation: test ---------------------------
-def extreme_evaluation():
+# --------------------------- extrame value evaluation ---------------------------
+def extreme_evaluation(target_real_test, target_real_train, target_predict_test, target_predict_train, save_on=False,
+                       save_path="evaluation_extreme.xlsx", plot_on=False, batch=False):
     # threshold select
     def threshold_select():
         target_real_all = np.vstack((target_real_test, target_real_train))
@@ -177,8 +188,10 @@ def extreme_evaluation():
         target_predict_high = target_predict[index_high]
 
         NSE_all = 1 - sum((target_real - target_predict) ** 2) / sum((target_real - target_real.mean()) ** 2)
-        NSE_high = 1 - sum((target_real_high - target_predict_high) ** 2) / sum((target_real_high - target_real_high.mean()) ** 2)
-        NSE_low = 1 - sum((target_real_low - target_predict_low) ** 2) / sum((target_real_low - target_real_low.mean()) ** 2)
+        NSE_high = 1 - sum((target_real_high - target_predict_high) ** 2) / sum(
+            (target_real_high - target_real_high.mean()) ** 2)
+        NSE_low = 1 - sum((target_real_low - target_predict_low) ** 2) / sum(
+            (target_real_low - target_real_low.mean()) ** 2)
 
         evaluation = np.vstack((NSE_all, NSE_high, NSE_low))
         evaluation = pd.DataFrame(evaluation, index=['NSE_all', 'NSE_high', 'NSE_low'], columns=[columns])
@@ -228,28 +241,55 @@ def extreme_evaluation():
         evaluation_extreme_all.loc[:, 'Predict Hour' + str(i + 1)] = evaluation_all
 
         # plot
-        plot_on = input("是否进行plot? True or other")
+        if batch == False:
+            plot_on = input("是否进行plot? True or other")
+
         if plot_on == 'True':
             target_real = [target_real_train_, target_real_test_, target_real_all_]
             target_predict = [target_predict_train_, target_predict_test_, target_predict_all_]
             index_low = [train_index_low, test_index_low, all_index_low]
             index_high = [train_index_high, test_index_high, all_index_high]
             plot_evaluation_low_high(target_real, target_predict, index_low, index_high)
+            plt.show()
 
     print("evaluation_extreme_train\n", evaluation_extreme_train)
     print("evaluation_extreme_test\n", evaluation_extreme_test)
     print("evaluation_extreme_all\n", evaluation_extreme_all)
-    plt.show()
+
+    # combine: 0-Train, 1-Test, 2-All
+    evaluation_extreme_train.loc[:, "Name"] = pd.Series(np.full((3,), fill_value=0), index=evaluation_extreme_train.index)
+    evaluation_extreme_test.loc[:, "Name"] = pd.Series(np.full((3,), fill_value=1), index=evaluation_extreme_test.index)
+    evaluation_extreme_all.loc[:, "Name"] = pd.Series(np.full((3,), fill_value=2), index=evaluation_extreme_all.index)
+    evaluation = pd.concat([evaluation_extreme_train, evaluation_extreme_test, evaluation_extreme_all])
 
     # save evaluation_test
-    save_path = "evaluation_extreme.xlsx"
-    save_on = input("是否保存 evaluation_extreme.xlsx? True or other:")
-    if save_on == 'True':
-        evaluation_extreme_train.to_excel(save_path, sheet_name="train")
-        evaluation_extreme_test.to_excel(save_path, sheet_name="test")
-        evaluation_extreme_all.to_excel(save_path, sheet_name="all")
+    if batch == False:
+        save_on = input("是否保存 evaluation_extreme.xlsx? True or other:")
+    if save_on == True:
+        evaluation.to_excel(save_path)
 
 
 extreme_evaluation_on = input("是否进行extreme evaluation? True or Other:")
 if extreme_evaluation_on == "True":
-    extreme_evaluation()
+    extreme_evaluation(target_real_test, target_real_train, target_predict_test, target_predict_train)
+
+
+# --------------------------- extrame value evaluation: BP ---------------------------
+def extreme_evaluation_BP():
+    home = 'H:\文件\水科学数值模拟\复赛\数据后处理\后处理数据\BP'
+    target_predict_train_path = os.listdir(os.path.join(home, 'train'))
+    target_predict_test_path = os.listdir(os.path.join(home, 'test'))
+    for i in range(len(target_predict_train_path)):
+        target_predict_train_path_ = os.path.join(home, 'train', target_predict_train_path[i])
+        target_predict_test_path_ = os.path.join(home, 'test', target_predict_test_path[i])
+        target_predict_train = pd.read_csv(target_predict_train_path_, index_col=False, header=None).values.T
+        target_predict_test = pd.read_csv(target_predict_test_path_, index_col=False, header=None).values.T
+        save_path = os.path.join(home,
+                                 'BP' + re.search(r'\d+', target_predict_train_path[i])[0] + '_evaluation_extreme.xlsx')
+        extreme_evaluation(target_real_test, target_real_train, target_predict_test, target_predict_train, save_on=True,
+                           save_path=save_path, batch=True)
+
+
+extreme_evaluation_BP_on = input("是否进行BP批量extreme evaluation? True or Other:")
+if extreme_evaluation_BP_on == "True":
+    extreme_evaluation_BP()
