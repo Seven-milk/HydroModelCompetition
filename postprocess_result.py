@@ -39,7 +39,7 @@ def general_evaluation(target_real_test, target_real_train, target_predict_test,
         if batch == False:
             save_on = input(f"是否保存 {save_path}? True or other:")
 
-        if save_on == 'True':
+        if save_on == 'True' or True:
             evaluation.to_excel(save_path)
 
         return evaluation
@@ -244,7 +244,7 @@ def extreme_evaluation(target_real_test, target_real_train, target_predict_test,
         if batch == False:
             plot_on = input("是否进行plot? True or other")
 
-        if plot_on == 'True':
+        if plot_on == 'True' or True:
             target_real = [target_real_train_, target_real_test_, target_real_all_]
             target_predict = [target_predict_train_, target_predict_test_, target_predict_all_]
             index_low = [train_index_low, test_index_low, all_index_low]
@@ -265,7 +265,7 @@ def extreme_evaluation(target_real_test, target_real_train, target_predict_test,
     # save evaluation_test
     if batch == False:
         save_on = input("是否保存 evaluation_extreme.xlsx? True or other:")
-    if save_on == True:
+    if save_on == True or 'True':
         evaluation.to_excel(save_path)
 
 
@@ -293,3 +293,61 @@ def extreme_evaluation_BP():
 extreme_evaluation_BP_on = input("是否进行BP批量extreme evaluation? True or Other:")
 if extreme_evaluation_BP_on == "True":
     extreme_evaluation_BP()
+
+
+def plot_extreme_evaluation():
+    home = 'H:\文件\水科学数值模拟\复赛\数据后处理\BP_evaluation_extreme'
+    evaluation_extreme_path = [path for path in os.listdir(home) if path.endswith('.xlsx')]
+
+    NSE_all = np.zeros((len(evaluation_extreme_path), 17))
+    NSE_high = np.zeros((len(evaluation_extreme_path), 17))
+    BP_number = np.zeros((len(evaluation_extreme_path), ))
+    for i in range(len(evaluation_extreme_path)):
+        BP_number[i] = re.search(r'\d+', evaluation_extreme_path[i])[0]
+        df = pd.read_excel(os.path.join(home, evaluation_extreme_path[i]), header=0, index_col=0)
+        NSE_all[i, :] = df.values[3, :17]
+        NSE_high[i, :] = df.values[4, :17]
+
+    NSE_high = np.hstack((NSE_high, BP_number.reshape(-1, 1)))
+    NSE_all = np.hstack((NSE_all, BP_number.reshape(-1, 1)))
+
+    NSE_high = NSE_high[np.argsort(NSE_high[:, -1]), :]
+    NSE_all = NSE_all[np.argsort(NSE_all[:, -1]), :]
+    BP_number = sorted(BP_number)
+
+    plt.figure()
+    ax1 = plt.subplot(2, 1, 1)
+    ax2 = plt.subplot(2, 1, 2)
+
+    ax1.set_xlabel("BP_number", loc='right')
+    ax1.set_title("All")
+    ax1.set_ylabel("NSE")
+    ax2.set_xlabel("BP_number", loc='right')
+    ax2.set_title("High")
+    ax2.set_ylabel("NSE")
+    ax1.set_xlim(min(BP_number), max(BP_number))
+    ax2.set_xlim(min(BP_number), max(BP_number))
+
+    for i in range(16):
+        ax1.plot(BP_number, NSE_all[:, i], "r", alpha=i/16, label='alpha: 16 Hour')
+        ax2.plot(BP_number, NSE_high[:, i], "b", alpha=i/16, label='alpha: 16 Hour')
+        if i == 0:
+            ax1.legend(loc="upper left")
+            ax2.legend(loc="upper left")
+
+    plt.subplots_adjust(hspace=0.5)
+    plt.show()
+
+
+extreme_evaluation_BP_plot_on = input("是否进行BP批量extreme evaluation Plot? True or Other:")
+if extreme_evaluation_BP_plot_on == "True":
+    plot_extreme_evaluation()
+
+
+
+
+
+
+
+
+
