@@ -329,8 +329,10 @@ def plot_extreme_evaluation():
     ax2.set_xlim(min(BP_number), max(BP_number))
 
     for i in range(16):
-        ax1.plot(BP_number, NSE_all[:, i], "r", alpha=i/16, label='alpha: 16 Hour')
-        ax2.plot(BP_number, NSE_high[:, i], "b", alpha=i/16, label='alpha: 16 Hour')
+        ax1.plot(BP_number, NSE_all[:, i], "r-", alpha=i/16, label='alpha: 16 Hour')
+        ax1.plot(BP_number, NSE_all[:, i], "r.", alpha=i / 16)
+        ax2.plot(BP_number, NSE_high[:, i], "b-", alpha=i/16, label='alpha: 16 Hour')
+        ax2.plot(BP_number, NSE_high[:, i], "b.", alpha=i / 16)
         if i == 0:
             ax1.legend(loc="upper left")
             ax2.legend(loc="upper left")
