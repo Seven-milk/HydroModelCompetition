@@ -218,7 +218,7 @@ def train_cycle_model(epochs=100):
     optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
 
     # checkpoint
-    path_checkpoint_read = "H:/文件/水科学数值模拟/复赛/LSTM/checkpoint/ckpt_best_model01.pkl"
+    path_checkpoint_read = "H:/文件/水科学数值模拟/复赛/模型/LSTM/checkpoint/ckpt_best_model01.pkl"
     if os.path.isfile(path_checkpoint_read):
         # model read
         checkpoint = torch.load(path_checkpoint_read)
@@ -261,7 +261,7 @@ def train_cycle_model(epochs=100):
                 "nse_list": nse_list,
                 "epoch": epoch_list[-1],
             }
-            torch.save(checkpoint, f"H:/文件/水科学数值模拟/复赛/LSTM/checkpoint/ckpt_best_model01_{epoch}.pkl")
+            torch.save(checkpoint, f"H:/文件/水科学数值模拟/复赛/模型/LSTM/checkpoint/ckpt_best_model01_{epoch}.pkl")
 
     # plot
     plot_train_test(epoch_list, loss_list, nse_list)
@@ -275,13 +275,13 @@ def train_cycle_model(epochs=100):
         "nse_list": nse_list,
         "epoch": epoch_list[-1],
     }
-    torch.save(checkpoint, "H:/文件/水科学数值模拟/复赛/LSTM/checkpoint/ckpt_best_model01.pkl")
-    torch.save(model, 'H:/文件/水科学数值模拟/复赛/LSTM/model01.pth')
+    torch.save(checkpoint, "H:/文件/水科学数值模拟/复赛/模型/LSTM/checkpoint/ckpt_best_model01.pkl")
+    torch.save(model, 'H:/文件/水科学数值模拟/复赛/模型/LSTM/model01.pth')
 
 
 # model overview
 def overview_model():
-    checkpoint = torch.load('H:/文件/水科学数值模拟/复赛/LSTM/checkpoint/ckpt_best_model01.pkl')
+    checkpoint = torch.load('H:/文件/水科学数值模拟/复赛/模型/LSTM/checkpoint/ckpt_best_model01.pkl')
     epoch_list = checkpoint["epoch_list"]
     loss_list = checkpoint["loss_list"]
     nse_list = checkpoint["nse_list"]
@@ -303,7 +303,7 @@ def predict(runoff, pre):
         runoff: samples * 160 times * 4 stations
         pre: samples * 176 times * 20 stations
     '''
-    model = torch.load('H:/文件/水科学数值模拟/复赛/LSTM/model01.pth')
+    model = torch.load('H:/文件/水科学数值模拟/复赛/模型/LSTM/model01.pth')
     runoff = torch.from_numpy(runoff)
     pre = torch.from_numpy(pre)
     predict_out = model(runoff, pre)
@@ -312,7 +312,7 @@ def predict(runoff, pre):
 
 # predict_test
 def predict_test(save_on=True):
-    model = torch.load('H:/文件/水科学数值模拟/复赛/LSTM/model01.pth')
+    model = torch.load('H:/文件/水科学数值模拟/复赛/模型/LSTM/model01.pth')
     test_dataset = TestDataset()
     test_loader = DataLoader(dataset=test_dataset, shuffle=False, num_workers=1)
     predict = np.zeros((1, 16))
@@ -334,7 +334,7 @@ def predict_test(save_on=True):
 
 # predict_train
 def predict_train(save_on=True):
-    model = torch.load('H:/文件/水科学数值模拟/复赛/LSTM/model01.pth')
+    model = torch.load('H:/文件/水科学数值模拟/复赛/模型/LSTM/model01.pth')
     train_dataset = TrainDataset()
     train_loader = DataLoader(dataset=train_dataset, shuffle=False, num_workers=1)
     predict = np.zeros((1, 16))
@@ -356,7 +356,7 @@ def predict_train(save_on=True):
 
 # predict_val
 def predict_val(save_on=True):
-    model = torch.load('H:/文件/水科学数值模拟/复赛/LSTM/model01.pth')
+    model = torch.load('H:/文件/水科学数值模拟/复赛/模型/LSTM/model01.pth')
     predict_all = np.zeros((16, 5))
     for i in range(5):
         val_dataset = ValDataset(i)
@@ -381,6 +381,6 @@ def predict_val(save_on=True):
 if __name__ == '__main__':
     train_cycle_model(epochs=5)
     overview_model()
-    predict_test()
-    predict_train()
-    predict_val()
+    # predict_test()
+    # predict_train()
+    # predict_val()
