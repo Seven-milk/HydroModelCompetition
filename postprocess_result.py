@@ -301,40 +301,52 @@ def plot_extreme_evaluation():
 
     NSE_all = np.zeros((len(evaluation_extreme_path), 17))
     NSE_high = np.zeros((len(evaluation_extreme_path), 17))
+    NSE_low = np.zeros((len(evaluation_extreme_path), 17))
     BP_number = np.zeros((len(evaluation_extreme_path), ))
     for i in range(len(evaluation_extreme_path)):
         BP_number[i] = re.search(r'\d+', evaluation_extreme_path[i])[0]
         df = pd.read_excel(os.path.join(home, evaluation_extreme_path[i]), header=0, index_col=0)
         NSE_all[i, :] = df.values[3, :17]
         NSE_high[i, :] = df.values[4, :17]
+        NSE_low[i, :] = df.values[5, :17]
 
     NSE_high = np.hstack((NSE_high, BP_number.reshape(-1, 1)))
     NSE_all = np.hstack((NSE_all, BP_number.reshape(-1, 1)))
+    NSE_low = np.hstack((NSE_low, BP_number.reshape(-1, 1)))
 
     NSE_high = NSE_high[np.argsort(NSE_high[:, -1]), :]
     NSE_all = NSE_all[np.argsort(NSE_all[:, -1]), :]
+    NSE_low = NSE_low[np.argsort(NSE_low[:, -1]), :]
     BP_number = sorted(BP_number)
 
     plt.figure()
-    ax1 = plt.subplot(2, 1, 1)
-    ax2 = plt.subplot(2, 1, 2)
+    ax1 = plt.subplot(3, 1, 1)
+    ax2 = plt.subplot(3, 1, 2)
+    ax3 = plt.subplot(3, 1, 3)
 
     ax1.set_xlabel("BP_number", loc='right')
     ax1.set_title("All")
     ax1.set_ylabel("NSE")
-    ax1.grid(True)
     ax2.set_xlabel("BP_number", loc='right')
     ax2.set_title("High")
     ax2.set_ylabel("NSE")
+    ax3.set_xlabel("BP_number", loc='right')
+    ax3.set_title("Low")
+    ax3.set_ylabel("NSE")
     ax1.set_xlim(min(BP_number), max(BP_number))
     ax2.set_xlim(min(BP_number), max(BP_number))
+    ax3.set_xlim(min(BP_number), max(BP_number))
+    ax1.grid(True)
     ax2.grid(True)
+    ax3.grid(True)
 
     for i in range(16):
         ax1.plot(BP_number, NSE_all[:, i], "r-", alpha=1 - i / 16, label='alpha: 16 Hour')
         ax1.plot(BP_number, NSE_all[:, i], "r.", alpha=1 - i / 16)
         ax2.plot(BP_number, NSE_high[:, i], "b-", alpha=1 - i / 16, label='alpha: 16 Hour')
         ax2.plot(BP_number, NSE_high[:, i], "b.", alpha=1 - i / 16)
+        ax3.plot(BP_number, NSE_low[:, i], "g-", alpha=1 - i / 16, label='alpha: 16 Hour')
+        ax3.plot(BP_number, NSE_low[:, i], "g.", alpha=1 - i / 16)
         if i == 0:
             ax1.legend(loc="upper left")
             ax2.legend(loc="upper left")
