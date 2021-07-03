@@ -114,7 +114,7 @@ if general_evaluation_on == "True":
 
 # --------------------------- extrame value evaluation ---------------------------
 def extreme_evaluation(target_real_test, target_real_train, target_predict_test, target_predict_train, save_on=False,
-                       save_path="evaluation_extreme.xlsx", plot_on=False, batch=False):
+                       save_path="evaluation_extreme.xlsx", plot_on='False', batch=False):
     # threshold select
     def threshold_select():
         target_real_all = np.vstack((target_real_test, target_real_train))
@@ -244,7 +244,7 @@ def extreme_evaluation(target_real_test, target_real_train, target_predict_test,
         if batch == False:
             plot_on = input("是否进行plot? True or other")
 
-        if plot_on == 'True' or True:
+        if plot_on == 'True':
             target_real = [target_real_train_, target_real_test_, target_real_all_]
             target_predict = [target_predict_train_, target_predict_test_, target_predict_all_]
             index_low = [train_index_low, test_index_low, all_index_low]
@@ -280,12 +280,12 @@ def extreme_evaluation_BP():
     target_predict_train_path = os.listdir(os.path.join(home, 'train'))
     target_predict_test_path = os.listdir(os.path.join(home, 'test'))
     for i in range(len(target_predict_train_path)):
+        print(target_predict_train_path[i])
         target_predict_train_path_ = os.path.join(home, 'train', target_predict_train_path[i])
         target_predict_test_path_ = os.path.join(home, 'test', target_predict_test_path[i])
         target_predict_train = pd.read_csv(target_predict_train_path_, index_col=False, header=None).values.T
         target_predict_test = pd.read_csv(target_predict_test_path_, index_col=False, header=None).values.T
-        save_path = os.path.join(home,
-                                 'BP' + re.search(r'\d+', target_predict_train_path[i])[0] + '_evaluation_extreme.xlsx')
+        save_path = os.path.join(home, 'BP' + re.search(r'\d+', target_predict_train_path[i])[0] + '_evaluation_extreme.xlsx')
         extreme_evaluation(target_real_test, target_real_train, target_predict_test, target_predict_train, save_on=True,
                            save_path=save_path, batch=True)
 
@@ -296,7 +296,7 @@ if extreme_evaluation_BP_on == "True":
 
 
 def plot_extreme_evaluation():
-    home = 'H:\文件\水科学数值模拟\复赛\数据后处理\BP_evaluation_extreme'
+    home = 'H:\文件\水科学数值模拟\复赛\数据后处理\评估结果\BP_evaluation_extreme'
     evaluation_extreme_path = [path for path in os.listdir(home) if path.endswith('.xlsx')]
 
     NSE_all = np.zeros((len(evaluation_extreme_path), 17))
@@ -322,17 +322,19 @@ def plot_extreme_evaluation():
     ax1.set_xlabel("BP_number", loc='right')
     ax1.set_title("All")
     ax1.set_ylabel("NSE")
+    ax1.grid(True)
     ax2.set_xlabel("BP_number", loc='right')
     ax2.set_title("High")
     ax2.set_ylabel("NSE")
     ax1.set_xlim(min(BP_number), max(BP_number))
     ax2.set_xlim(min(BP_number), max(BP_number))
+    ax2.grid(True)
 
     for i in range(16):
-        ax1.plot(BP_number, NSE_all[:, i], "r-", alpha=i/16, label='alpha: 16 Hour')
-        ax1.plot(BP_number, NSE_all[:, i], "r.", alpha=i / 16)
-        ax2.plot(BP_number, NSE_high[:, i], "b-", alpha=i/16, label='alpha: 16 Hour')
-        ax2.plot(BP_number, NSE_high[:, i], "b.", alpha=i / 16)
+        ax1.plot(BP_number, NSE_all[:, i], "r-", alpha=1 - i / 16, label='alpha: 16 Hour')
+        ax1.plot(BP_number, NSE_all[:, i], "r.", alpha=1 - i / 16)
+        ax2.plot(BP_number, NSE_high[:, i], "b-", alpha=1 - i / 16, label='alpha: 16 Hour')
+        ax2.plot(BP_number, NSE_high[:, i], "b.", alpha=1 - i / 16)
         if i == 0:
             ax1.legend(loc="upper left")
             ax2.legend(loc="upper left")
