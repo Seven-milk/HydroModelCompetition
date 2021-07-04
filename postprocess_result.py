@@ -22,7 +22,7 @@ target_predict_test = pd.read_csv(target_predict_test_path, index_col=False, hea
 
 
 # --------------------------- general evaluation ---------------------------
-def general_evaluation(target_real_test, target_real_train, target_predict_test, target_predict_train, save_on=False,
+def general_evaluation(target_real_test, target_real_train, target_predict_test, target_predict_train, save_on='False',
                        batch=False, plot_on=True):
     # model evaluation
     def evaluation(target_test, target_predict_test, save_path="evaluation.xlsx", save_on=False, batch=False):
@@ -39,7 +39,7 @@ def general_evaluation(target_real_test, target_real_train, target_predict_test,
         if batch == False:
             save_on = input(f"是否保存 {save_path}? True or other:")
 
-        if save_on == 'True' or True:
+        if save_on == 'True':
             evaluation.to_excel(save_path)
 
         return evaluation
@@ -56,7 +56,7 @@ def general_evaluation(target_real_test, target_real_train, target_predict_test,
     def plot_evaluation():
         # plot bar
         ax = plt.subplot(5, 1, 1)
-        ticks_ = [f'第{i + 1}小时' for i in range(evaluation_train.shape[1])]
+        ticks_ = [f'第{i + 1}时段' for i in range(evaluation_train.shape[1])]
         labels_ = ['率定期', '验证期']
         bar_width = 0.2
         ticks_position = [i + (bar_width * 3) / 2 for i in range(evaluation_train.shape[1])]
@@ -89,7 +89,7 @@ def general_evaluation(target_real_test, target_real_train, target_predict_test,
             ax.legend(loc="upper left", prop={'family': 'SimHei'})
             ax.set_ylabel("runoff", fontdict={'family': 'Arial'})
             ax.set_xlabel("samples", loc='right', fontdict={'family': 'Arial'})
-            ax.set_title(f'Hour{i + 1}')
+            ax.set_title(f'时段{i + 1}', fontdict={'family': 'SimHei'})
             ax.text(x, y, evaluation_test_text,
                     fontdict={'family': 'Arial', 'size': 8})  # , bbox=dict(facecolor='w', alpha=0.5)
             # ax.set_xlim(0, len(target_predict_test[:, i + 1]))
